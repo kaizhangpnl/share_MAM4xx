@@ -15,8 +15,6 @@ Units handling of dry pressure thickness (`pseudo_density_dry` in Pa) is convert
 
 Precipitation production and evaporation rates are passed correctly as kg kg⁻¹ s⁻¹. Cloud fraction is estimated empirically from integrated mass flux (`dp1 = 0.018`, `dp2 = 500.0`, capped at 0.60).
 
-**Open issue:** A known bug in `convproc.hpp` (and the original Fortran) uses a single scalar layer thickness `dz` (taken from the lowest level) for the Lagrangian updraft time step `dt_u = min(dz / wup, dt)` instead of level-varying thickness. This affects residence time, activation, and wet-removal rates. Reviewers (whannah1, DJFJJA) confirmed it; it is not fixed in this PR.
-
 ## Wet removal (in-cloud, below-cloud, resuspension)
 
 The algorithm follows the established MAM4 / Wang et al. style:
@@ -40,14 +38,6 @@ The author explicitly notes that consolidating convective vertical transport int
 | `aerdepwetis_convproc`    | Convective interstitial aerosol wet deposition      | kg m⁻² s⁻¹     | 2D (per constituent) | New convective contribution |
 | `aerdepwetis`             | Total interstitial aerosol wet deposition           | kg m⁻² s⁻¹     | 2D (per constituent) | Includes convective + stratiform |
 | `aerdepwetcw`             | Cloud-borne aerosol wet deposition                  | kg m⁻² s⁻¹     | 2D (per constituent) | Cloud-borne fraction |
-| `wetdep_hydrophilic_bc`   | Wet deposition of hydrophilic black carbon          | kg m⁻² s⁻¹     | 3D mid        | Species-specific |
-| `drydep_hydrophilic_bc`   | Dry deposition of hydrophilic black carbon          | kg m⁻² s⁻¹     | 3D mid        | Species-specific |
-| `wetdep_hydrophilic_oc`   | Wet deposition of hydrophilic organic carbon        | kg m⁻² s⁻¹     | 3D mid        | Species-specific |
-| `drydep_hydrophilic_oc`   | Dry deposition of hydrophilic organic carbon        | kg m⁻² s⁻¹     | 3D mid        | Species-specific |
-| `wetdep_dust_bin1`        | Wet deposition of dust bin 1                        | kg m⁻² s⁻¹     | 3D mid        | Dust bin |
-| `wetdep_dust_bin2`        | Wet deposition of dust bin 2                        | kg m⁻² s⁻¹     | 3D mid        | Dust bin |
-| `wetdep_dust_bin3`        | Wet deposition of dust bin 3                        | kg m⁻² s⁻¹     | 3D mid        | Dust bin |
-| `wetdep_dust_bin4`        | Wet deposition of dust bin 4                        | kg m⁻² s⁻¹     | 3D mid        | Dust bin |
 | `fracis`                  | Interstitial fraction of aerosol                    | none           | 3D mid        | Diagnostic |
 | `dgnum`                   | Geometric mean diameter (dry)                       | m              | 3D mid (modes)| Diagnostic |
 | `wetdens`                 | Wet density of aerosol                              | kg m⁻³         | 3D mid (modes)| Diagnostic |
@@ -56,7 +46,6 @@ The author explicitly notes that consolidating convective vertical transport int
 
 **Notes**
 - `aerdepwetis_convproc`, `aerdepwetis`, and `aerdepwetcw` are per-constituent (pcnst) surface fluxes.
-- The `wetdep_*` / `drydep_*` fields are the usual species-specific deposition diagnostics (BC, OC, dust bins, and similarly for other species such as sulfate, sea salt, etc.).
 - Several of these fields are also required inputs or intermediate diagnostics when `do_convproc` is true.
 
 ## Namelist Options for `mam4_wetscav` Convective Processing 
