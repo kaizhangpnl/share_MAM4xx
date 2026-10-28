@@ -1,5 +1,45 @@
 ## MAM4xx-ZM coupling 
 
+## Summary of the MAM4xx–ZM Coupling
+
+The PR ([E3SM-Project/E3SM#8671](https://github.com/E3SM-Project/E3SM/pull/8671)) couples the **ZM deep-convection scheme** to **MAM4xx** (the C++/Kokkos Modal Aerosol Model) so that convective wet scavenging of aerosols can be treated.
+
+### Purpose
+MAM4xx previously lacked an effective deep-convective wet-removal pathway. This coupling supplies ZM mass fluxes, precipitation production, cloud water, and cloud levels to MAM4xx’s `ConvProc` routine so aerosols can be activated, scavenged, and resuspended inside deep convective clouds.
+
+### How the Coupling Works
+
+1. **ZM** runs and exports the required diagnostics (mass fluxes, entrainment/detrainment, rain production, in-cloud liquid, cloud-top/base indices, etc.).
+2. **`mam4_wetscav`** reads those fields when the namelist flags `convproc_do_aer` (and optionally `convproc_do_gas`) are enabled.
+3. Inside the wet-deposition driver, `mam4::wetdep::aero_model_wetdep` calls `convproc::ma_convproc_intr`, which performs:
+   - Convective transport
+   - Aerosol activation (Abdul-Razzak & Ghan)
+   - In-cloud and below-cloud wet removal
+   - Resuspension from evaporating precipitation
+4. The convective contribution to wet deposition is returned as `aerdepwetis_convproc`.
+
+### Key Controls
+
+| Namelist Option              | Type    | Default | Description                                      | Notes |
+|------------------------------|---------|---------|--------------------------------------------------|-------|
+| `mam4_wetscav::convproc_do_aer` | logical | `false` | Enable convective processing of aerosols        | Used by ConvProc / wet scavenging with ZM outputs |
+| `mam4_wetscav::convproc_do_gas` | logical | `false` | Enable convective processing of gases           | Currently often left false |
+| `do_convproc` (internal)     | logical | —       | OR of the two flags above                       | Controls whether ConvProc path is activated |
+
+**Notes**
+- Both options are defined under the `mam4_wetscav` process (which inherits from `mam4_atm_proc_base`).
+- In the PR testmods / shell commands, `convproc_do_aer=true` and `convproc_do_gas=false` are set.
+
+
+| Option | Default | Role |
+|--------|---------|------|
+| `mam4_wetscav::convproc_do_aer` | `false` | Turn on convective aerosol processing |
+| `mam4_wetscav::convproc_do_gas` | `false` | Turn on convective gas processing |
+
+`do_convproc` is the internal OR of the two flags.
+
+
+
 ## Convective precipitation and mass fluxes 
 
 ZM exports the expected fields used by ConvProc:
@@ -48,17 +88,6 @@ The author explicitly notes that consolidating convective vertical transport int
 - `aerdepwetis_convproc`, `aerdepwetis`, and `aerdepwetcw` are per-constituent (pcnst) surface fluxes.
 - Several of these fields are also required inputs or intermediate diagnostics when `do_convproc` is true.
 
-## Namelist Options for `mam4_wetscav` Convective Processing 
-
-| Namelist Option              | Type    | Default | Description                                      | Notes |
-|------------------------------|---------|---------|--------------------------------------------------|-------|
-| `mam4_wetscav::convproc_do_aer` | logical | `false` | Enable convective processing of aerosols        | Used by ConvProc / wet scavenging with ZM outputs |
-| `mam4_wetscav::convproc_do_gas` | logical | `false` | Enable convective processing of gases           | Currently often left false |
-| `do_convproc` (internal)     | logical | —       | OR of the two flags above                       | Controls whether ConvProc path is activated |
-
-**Notes**
-- Both options are defined under the `mam4_wetscav` process (which inherits from `mam4_atm_proc_base`).
-- In the PR testmods / shell commands, `convproc_do_aer=true` and `convproc_do_gas=false` are set.
 
 
 ## ZM Process Interface — Selected Convection-Related Fields 
