@@ -1,5 +1,38 @@
 ## MAM4xx-ZM coupling 
 
+## Convective precipitation and mass fluxes 
+
+ZM exports the expected fields used by ConvProc:
+
+- Updraft/downdraft mass fluxes: `zm_mflx_up`, `zm_mflx_dn` (kg m⁻² s⁻¹)
+- Entrainment/detrainment: `zm_entr_up`, `zm_detr_up`, `zm_entr_dn` (s⁻¹)
+- Rain production: `zm_rain_prod` (kg kg⁻¹ s⁻¹)
+- In-cloud liquid: `zm_icw_liq` / `zm_ql` (kg kg⁻¹)
+- Cloud levels: `zm_cld_top` / `zm_jctop`, `zm_cld_bot` / `zm_jcbot`
+- Other: `zm_mass_flux_int`, `zm_detr_qc`, `evap_dq_out`, etc.
+
+Units handling of dry pressure thickness (`pseudo_density_dry` in Pa) is converted to millibars for ConvProc (`pa_to_mb = 0.01`). This addresses an earlier Copilot comment. ConvProc internally works in mb for pressure thickness and mb s⁻¹ for mass fluxes (converted from the kg m⁻² s⁻¹ inputs).
+
+Precipitation production and evaporation rates are passed correctly as kg kg⁻¹ s⁻¹. Cloud fraction is estimated empirically from integrated mass flux (`dp1 = 0.018`, `dp2 = 500.0`, capped at 0.60).
+
+**Open issue:** A known bug in `convproc.hpp` (and the original Fortran) uses a single scalar layer thickness `dz` (taken from the lowest level) for the Lagrangian updraft time step `dt_u = min(dz / wup, dt)` instead of level-varying thickness. This affects residence time, activation, and wet-removal rates. Reviewers (whannah1, DJFJJA) confirmed it; it is not fixed in this PR.
+
+## Wet removal (in-cloud, below-cloud, resuspension)
+
+The algorithm follows the established MAM4 / Wang et al. style:
+
+- **In-cloud / updraft:** First-order loss using rain production rate `rprd` relative to in-cloud water and residence time derived from mass flux. Activation uses Abdul-Razzak & Ghan (modal).
+- **Below-cloud:** Scavenging by precipitation flux; resuspension from evaporating precipitation via `faer_resusp_vs_fprec_evap_mpln` (log-normal raindrop polynomial).
+- **Resuspension mapping:** `mmtoo_prevap_resusp` and `species_class` control which species are resuspended vs. remain scavenged (CAM5-style approach that tries to minimize impact on stratiform clouds).
+
+These are wired through `mam4::wetdep::aero_model_wetdep` when `do_convproc` is true. Outputs include `aerdepwetis_convproc` (kg m⁻² s⁻¹).
+
+## Convective tracer transport
+
+ConvProc performs its own transport, activation, and wet removal using the ZM mass fluxes, entrainment/detrainment, and cloud levels. ZM itself can also transport tracers.
+
+The author explicitly notes that consolidating convective vertical transport into one place is desirable but deferred to a follow-up PR (they do **not** want to remove ZM’s capability).
+
 ## Wet-Scavenging Process — Selected Output / Diagnostic Fields  
 
 | Variable                  | Meaning                                              | Units          | Type / Layout | Notes |
