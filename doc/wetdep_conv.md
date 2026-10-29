@@ -7,6 +7,16 @@ The PR ([E3SM-Project/E3SM#8671](https://github.com/E3SM-Project/E3SM/pull/8671)
 ### Purpose
 MAM4xx previously lacked an effective deep-convective wet-removal pathway. This coupling supplies ZM mass fluxes, precipitation production, cloud water, and cloud levels to MAM4xx’s `ConvProc` routine so aerosols can be activated, scavenged, and resuspended inside deep convective clouds.
 
+### Related code changes 
+
+#### MAM4xx 
+- https://github.com/E3SM-Project/mam4xx/blob/a8e9b0f4f4e43f6d858f56708719acbce21f9e7a/src/mam4xx/convproc.hpp
+- https://github.com/E3SM-Project/mam4xx/blob/a8e9b0f4f4e43f6d858f56708719acbce21f9e7a/src/mam4xx/wet_dep.hpp
+- 
+#### EAMxx
+- https://github.com/E3SM-Project/E3SM/blob/5986c446c9b89be6800fe731454d11605f7443f3/components/eamxx/src/physics/mam/eamxx_mam_wetscav_process_interface.cpp
+- https://github.com/E3SM-Project/E3SM/blob/5986c446c9b89be6800fe731454d11605f7443f3/components/eamxx/src/physics/zm/zm_functions.hpp#L455
+
 ### How the Coupling Works
 
 1. **ZM** runs and exports the required diagnostics (mass fluxes, entrainment/detrainment, rain production, in-cloud liquid, cloud-top/base indices, etc.).
