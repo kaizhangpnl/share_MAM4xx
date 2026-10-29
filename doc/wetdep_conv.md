@@ -143,4 +143,30 @@ The author explicitly notes that consolidating convective vertical transport int
 
 https://chatgpt.com/c/6ae27662-c4bc-8333-b9b3-c56474cd2c51 
 
+## Simulation 
 
+### output list 
+
+```
+  # wetdep output 
+  - aerdepwetis
+  - aerdepwetcw
+  - dgnumwet
+  - dgnum
+  - wetdens
+  - qaerwat
+  
+  # ZM output 
+  - zm_detr_qc
+  - zm_detr_qi
+  - zm_jt
+  - zm_jcbot
+  - zm_mflx_up
+  - zm_mflx_dn
+  - zm_entr_up
+  - zm_detr_up
+  - zm_entr_dn
+  - zm_cape
+  - zm_prec
+  - zm_snow
+``` 
