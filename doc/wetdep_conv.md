@@ -139,4 +139,8 @@ The author explicitly notes that consolidating convective vertical transport int
 - `zm_icw_liq` and `zm_ql` refer to the same quantity (in-cloud liquid).
 - MCSP fields are present when the Multiscale Coherent Structure Parameterization is enabled inside ZM.
 
-- 
+## LLM assisted review 
+
+https://chatgpt.com/c/6ae27662-c4bc-8333-b9b3-c56474cd2c51 
+
+
